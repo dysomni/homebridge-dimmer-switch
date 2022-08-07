@@ -12,3 +12,5 @@ dist
 config.json
 persist
 accessories
+
+.history/

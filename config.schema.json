@@ -1,66 +1,34 @@
 {
-    "pluginAlias": "DummyRadioSwitchPlatform",
+    "pluginAlias": "DimmerSwitchPlatform",
     "pluginType": "platform",
     "singular": true,
-    "headerDisplay": "Homebridge plugin that exposes a radio button selection with dummy switches.",
-    "footerDisplay": "Each radio group can have several switches, only one switch can be enabled at a time. If a switched is turned ON, all other switches are turned OFF.",
+    "headerDisplay": "Homebridge plugin that exposes a fake dimmer with incremental buttons.",
+    "footerDisplay": "Each dimmer can have many values. The values will be sorted through from first to last when increasing, and last to first when decreasing.",
     "schema": {
         "type": "object",
         "properties": {
-            "groups": {
+            "dimmers": {
                 "type": "array",
                 "items": {
-                    "title": "Group",
+                    "title": "Dimmer",
                     "type": "object",
                     "properties": {
                         "name": {
                             "title": "Name",
                             "type": "string",
                             "required": true,
-                            "placeholder": "unique group name",
-                            "description": "The name of the group, that is initially used as the display name."
+                            "placeholder": "unique dimmer name",
+                            "description": "The name of the dimmer, that is initially used as the display name."
                         },
-                        "displayAsPowerStrip": {
-                            "title": "Display As Power Strip",
-                            "type": "boolean",
-                            "description": "If enabled, outlets instead of switches are exposed to HomeKit. This provides a more compact UI in the Apple Home app."
-                        },
-                        "switches": {
+                        "values": {
+                            "title": "List of values to shift through",
                             "type": "array",
+                            "description": "These are the values that the buttons will shift through.",
                             "items": {
-                                "title": "Switch",
-                                "type": "object",
-                                "properties": {
-                                    "name": {
-                                        "title": "Name",
-                                        "type": "string",
-                                        "required": true,
-                                        "placeholder": "switch name",
-                                        "description": "The name of the switch. Should be unique within the group."
-                                    },
-                                    "isDefaultOn": {
-                                        "title": "Is Default On",
-                                        "type": "boolean",
-                                        "description": "A single switch in a group can be defined as the 'default on'. If a switch in a group has this property enabled, the group acts as a radio button group that always has one option 'selected'. This means if all switches are set to OFF, the switch that is marked as 'default on' is set to ON."
-                                    },
-                                    "nextOnSwitchName": {
-                                        "title": "Next On Switch",
-                                        "type": "string",
-                                        "placeholder": "switch name",
-                                        "description": "The name of the switch (in the same group) that should be switched to ON if the current switch is switched OFF. This overwrites the 'default on' behavior."
-                                    },
-                                    "timeout": {
-                                        "title": "Timeout",
-                                        "type": "integer",
-                                        "description": "If a value is set (in seconds), a timer is started when the 'selection' changes. When the timer elapses, the 'selection' is reset to the button that is marked as default on. If no default on button is provided, all are switched off."
-                                    }
-                                }
+                              "title": "Value",
+                              "type": "number",
+                              "description": "A value between 0 and 100 to represent the next dimmer value."
                             }
-                        },
-                        "timeout": {
-                            "title": "Timeout",
-                            "type": "integer",
-                            "description": "If a value is set (in seconds), a timer is started when the 'selection' changes. When the timer elapses, the 'selection' is reset to the button that is marked as default on. If no default on button is provided, all are switched off."
                         }
                     }
                 }
