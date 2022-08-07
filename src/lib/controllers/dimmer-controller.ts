@@ -54,6 +54,7 @@ export class DimmerController {
               return
             }
             platform.logger.info(`[${incSwitchName}] switch activated`);
+            platform.logger.info(`current index is ${this.currentIdx}`);
             if (this.currentIdx < this.values.length - 1) {
               this.currentIdx = this.currentIdx + 1;
               setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
@@ -65,6 +66,7 @@ export class DimmerController {
             return
           }
           platform.logger.info(`[${decSwitchName}] switch activated`);
+          platform.logger.info(`current index is ${this.currentIdx}`);
           if (this.currentIdx > 0) {
             this.currentIdx = this.currentIdx - 1;
             setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
@@ -72,20 +74,13 @@ export class DimmerController {
           setTimeout(() => this.decOnCharacteristic.value = false, 50);
         };
         this.reportBrightnessCharacteristic.valueChanged = newValue => {
+          platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
           const closest = this.values.reduce(function(prev, curr) {
             return (Math.abs(curr - newValue) < Math.abs(prev - newValue) ? curr : prev);
           });
           const closestIdx = this.values.findIndex(x => x === closest);
+          platform.logger.info(`new index is ${closestIdx}`);
           this.currentIdx = closestIdx;
-        };
-        this.reportOnCharacteristic.valueChanged = newValue => {
-          if (!newValue) {
-            const closest = this.values.reduce(function(prev, curr) {
-              return (Math.abs(curr - 0) < Math.abs(prev - 0) ? curr : prev);
-            });
-            const closestIdx = this.values.findIndex(x => x === closest);
-            this.currentIdx = closestIdx;
-          }
         };
 
         accessory.removeUnusedServices();
