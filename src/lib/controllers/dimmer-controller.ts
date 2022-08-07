@@ -29,10 +29,13 @@ export class DimmerController {
         this.values = dimmerConfiguration.values;
         this.currentIdx = 0
 
-        let lightBulbService: Service
-        lightBulbService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name}`)
+        let lightBulbService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name}`)
         this.bulbOnCharacteristic = lightBulbService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
         this.bulbBrightnessCharacteristic = lightBulbService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
+
+        let reportService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name} Report`)
+        this.reportOnCharacteristic = reportService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
+        this.reportBrightnessCharacteristic = reportService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
 
 
         let incSwitchName = `${dimmerConfiguration.name} Increment`
@@ -67,7 +70,14 @@ export class DimmerController {
             setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
           }
           setTimeout(() => this.decOnCharacteristic.value = false, 50);
-      };
+        };
+        this.reportBrightnessCharacteristic.valueChanged = newValue => {
+          const closest = this.values.reduce(function(prev, curr) {
+            return (Math.abs(curr - newValue) < Math.abs(prev - newValue) ? curr : prev);
+          });
+          const closestIdx = this.values.findIndex(x => x === closest);
+          this.currentIdx = closestIdx;
+        };
 
         accessory.removeUnusedServices();
         setTimeout(() => this.incOnCharacteristic.value = false, 50);
@@ -82,5 +92,7 @@ export class DimmerController {
     private decOnCharacteristic: Characteristic<boolean>;
     private bulbOnCharacteristic: Characteristic<boolean>;
     private bulbBrightnessCharacteristic: Characteristic<number>;
+    private reportOnCharacteristic: Characteristic<boolean>;
+    private reportBrightnessCharacteristic: Characteristic<number>;
 
 }
