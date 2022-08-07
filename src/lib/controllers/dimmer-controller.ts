@@ -82,6 +82,17 @@ export class DimmerController {
           platform.logger.info(`new index is ${closestIdx}`);
           this.currentIdx = closestIdx;
         };
+        this.reportOnCharacteristic.valueChanged = newValue => {
+          if (!newValue) {
+            platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
+            const closest = this.values.reduce(function(prev, curr) {
+              return (Math.abs(curr - 0) < Math.abs(prev - 0) ? curr : prev);
+            });
+            const closestIdx = this.values.findIndex(x => x === closest);
+            platform.logger.info(`new index is ${closestIdx}`);
+            this.currentIdx = closestIdx;
+          }
+        };
 
         accessory.removeUnusedServices();
         setTimeout(() => this.incOnCharacteristic.value = false, 50);
