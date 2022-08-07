@@ -78,6 +78,15 @@ export class DimmerController {
           const closestIdx = this.values.findIndex(x => x === closest);
           this.currentIdx = closestIdx;
         };
+        this.reportOnCharacteristic.valueChanged = newValue => {
+          if (!newValue) {
+            const closest = this.values.reduce(function(prev, curr) {
+              return (Math.abs(curr - 0) < Math.abs(prev - 0) ? curr : prev);
+            });
+            const closestIdx = this.values.findIndex(x => x === closest);
+            this.currentIdx = closestIdx;
+          }
+        };
 
         accessory.removeUnusedServices();
         setTimeout(() => this.incOnCharacteristic.value = false, 50);
