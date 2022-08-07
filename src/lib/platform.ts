@@ -38,23 +38,13 @@ export class Platform extends HomebridgePlatform<Configuration> {
 
         // Cycles over all configured groups and creates the corresponding controllers
         for (let dimmerConfiguration of this.configuration.dimmers) {
-            if (dimmerConfiguration.name && dimmerConfiguration.switches) {
-
-                // Checks whether the switches are configured properly
-                if (dimmerConfiguration.switches.some(s => !s.name)) {
-                    this.logger.warn(`[${dimmerConfiguration.name}] Switches are not configured properly.`);
-                    continue;
-                }
-                if (dimmerConfiguration.switches.filter(s => s.isDefaultOn).length > 1) {
-                    this.logger.warn(`[${dimmerConfiguration.name}] Multiple switches are set as default on. This is not a valid configuration.`);
-                    continue;
-                }
+            if (dimmerConfiguration.name && dimmerConfiguration.values) {
 
                 // Creates a new controller for the group
-                const groupController = new DimmerController(this, dimmerConfiguration);
-                this.controllers.push(groupController);
+                const dimmerController = new DimmerController(this, dimmerConfiguration);
+                this.controllers.push(dimmerController);
             } else {
-                this.logger.warn(`Group name missing in the configuration.`);
+                this.logger.warn(`Dimmer name missing in the configuration.`);
             }
         }
     }
