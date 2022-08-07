@@ -53,9 +53,9 @@ export class DimmerController {
             platform.logger.info(`[${incSwitchName}] switch activated`);
             if (this.currentIdx < this.values.length - 1) {
               this.currentIdx = this.currentIdx + 1;
-              this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx];
+              setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
             }
-            this.incOnCharacteristic.value = false;
+            setTimeout(() => this.incOnCharacteristic.value = false, 50);
         };
         this.decOnCharacteristic.valueChanged = newValue => {
           if (newValue === false) {
@@ -64,15 +64,15 @@ export class DimmerController {
           platform.logger.info(`[${decSwitchName}] switch activated`);
           if (this.currentIdx > 0) {
             this.currentIdx = this.currentIdx - 1;
-            this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx];
+            setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
           }
-          this.incOnCharacteristic.value = false;
+          setTimeout(() => this.decOnCharacteristic.value = false, 50);
       };
 
         accessory.removeUnusedServices();
-        this.incOnCharacteristic.value = false;
-        this.decOnCharacteristic.value = false;
-        this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx];
+        setTimeout(() => this.incOnCharacteristic.value = false, 50);
+        setTimeout(() => this.decOnCharacteristic.value = false, 50);
+        setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
     }
 
     private values: Array<number>;
