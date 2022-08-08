@@ -1,62 +1,59 @@
-# homebridge-dummy-radio-switch
-Homebridge plugin that exposes a radio button selection with dummy switches. 
+# homebridge-dimmer-switch
+Homebridge plugin that exposes a dimmer switch with increment and decrement switches.
 
-Each "radio group" can have several switches, only one switch can be enabled at a time. If a switched is turned ON, all other switches are turned OFF.
+Each dimmer switch creates 4 different accessories in a group.
+
+The plain dimmer bulb is used for hooking functionality to. Use apps like Home+ to automate a scene when the dimmer is set to a specific value.
+
+The report dimmer bulb is used to update the dimmer switch state so that it knows when controlling it after a manual scene has been set. For example, if I have a scene that manually sets the lights to a specific brightness outside of using the dimmer switch, I would want that scene to also update the "report" dimmer so that it knows how to dim from then on.
+
+The increment switch moves to the next value in the list, based on where it was last placed.
+
+The decrement switch moves to the previous value in the list, based on where it was last placed.
 
 ## Installation
 
-Please install the plugin with the following command:
+This plugin is currently not published with npm. Please install the plugin after cloning the repository. Then after entering into the directory, run the following commands:
 
 ```
-npm install -g homebridge-dummy-radio-switch
+npm run build
+npm install -g .
 ```
 
 ## Configuration
 
 ```json
 {
-    "platforms": [
+    "dimmers": [
         {
-            "platform": "DummyRadioSwitchPlatform",
-            "groups": [
-                {
-                    "name": "<GROUP-NAME>",
-                    "displayAsPowerStrip": false,
-                    "switches": [
-                        {
-                            "name": "<SWITCH-NAME-1>",
-                            "isDefaultOn": false,
-                            "timeout": 0,
-                            "nextOnSwitchName": null
-                        },
-                        {
-                            "name": "<SWITCH-NAME-2>",
-                            "isDefaultOn": false,
-                            "timeout": 0,
-                            "nextOnSwitchName": null
-                        },
-                        ...
-                    ],
-                    "timeout": 0
-                }
+            "name": "Bedroom Dimmer",
+            "values": [
+                0,
+                1,
+                25,
+                50,
+                75,
+                100
+            ]
+        },
+        {
+            "name": "Kitchen Dimmer",
+            "values": [
+                0,
+                1,
+                25,
+                50,
+                75,
+                100
             ]
         }
-    ]
+    ],
+    "platform": "DimmerSwitchPlatform"
 }
 ```
 
-**groups**: Array of all groups of switches that should be exposed to HomeKit. Each group is a separate accessory.
+**dimmers**: Array of all dimmers that should be exposed to HomeKit. Each dimmer is a separate set of accessories.
 
-**name**: The name of the group, that is initially used as the display name.
+**name**: The name of the dimmer, that is initially used as the display name.
 
-**displayAsPowerStrip**: If set to `true`, outlets instead of switches are exposed to HomeKit. This provides a more compact UI in the Apple Home app. Defaults to `false`.
-
-**switches**: Array of all switches of the group.
-
-**name**: The name of the switch.
-
-**isDefaultOn** (optional): A single switch in a group can be defined as the "default on". If a switch in a group has this property set to `true`, the group acts as a radio button group that **always** has one option "selected". This means if all switches are set to OFF, the switch that is marked as "default on" is set to ON.
-
-**nextOnSwitchName** (optional): The name of the switch (in the same group) that should be switched to ON if the current switch is switched OFF. This overwrites the "default on" behavior.
-
-**timeout** (optional): If a value is set (in seconds), a timer is started when the "selection" changes. When the timer elapses, the "selection" is reset to the button that is marked as `isDefaultOn`. If no `isDefaultOn` button is provided, all are switched off. You can set a per-group timeout or multiple per-switch timeout values.
+**values**: List of values that the dimmer will move through. Increment moves to values later in the list, and Decrement moves to values earlier in the list.
