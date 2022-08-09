@@ -1,15 +1,17 @@
 # homebridge-dimmer-switch
 Homebridge plugin that exposes a dimmer switch with increment and decrement switches.
 
-Each dimmer switch creates 4 different accessories in a group.
+Each dimmer switch creates 5 different accessories in a group.
 
 The plain dimmer bulb is used for hooking functionality to. Use apps like Home+ to automate a scene when the dimmer is set to a specific value.
 
-The report dimmer bulb is used to update the dimmer switch state so that it knows when controlling it after a manual scene has been set. For example, if I have a scene that manually sets the lights to a specific brightness outside of using the dimmer switch, I would want that scene to also update the "report" dimmer so that it knows how to dim from then on.
+The report dimmer bulb is used to update the dimmer switch state so that it knows when controlling it after a manual scene has been set. For example, if I have a scene that manually sets the lights to a specific brightness aside from using the dimmer switch, I would want that scene to also update the "report" dimmer so that the dimmer knows how to dim from then on.
 
 The increment switch moves to the next value in the list, based on where it was last placed.
 
 The decrement switch moves to the previous value in the list, based on where it was last placed.
+
+The toggle switch sets it to either the first or last value in the list. If it is currently somewhere in the middle, it defaults to the first value.
 
 ## Installation
 

@@ -40,6 +40,8 @@ export class DimmerController {
 
         let incSwitchName = `${dimmerConfiguration.name} Increment`
         let decSwitchName = `${dimmerConfiguration.name} Decrement`
+        let toggleSwitchName = `${dimmerConfiguration.name} Toggle`
+
         // Creates all switches of the controller
         platform.logger.info(`[${dimmerConfiguration.name}] Adding increment switch ${incSwitchName}`);
         let incSwitchService = accessory.useService(Homebridge.Services.Switch, incSwitchName, `${incSwitchName}-switch`);
@@ -48,6 +50,10 @@ export class DimmerController {
         platform.logger.info(`[${dimmerConfiguration.name}] Adding decrement switch ${decSwitchName}`);
         let decSwitchService = accessory.useService(Homebridge.Services.Switch, decSwitchName, `${decSwitchName}-switch`);
         this.decOnCharacteristic = decSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
+
+        platform.logger.info(`[${dimmerConfiguration.name}] Adding toggle switch ${toggleSwitchName}`);
+        let toggleSwitchService = accessory.useService(Homebridge.Services.Switch, toggleSwitchName, `${toggleSwitchName}-switch`);
+        this.toggleOnCharacteristic = toggleSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
 
         this.incOnCharacteristic.valueChanged = newValue => {
             if (newValue === false) {
@@ -61,6 +67,7 @@ export class DimmerController {
             }
             setTimeout(() => this.incOnCharacteristic.value = false, 50);
         };
+
         this.decOnCharacteristic.valueChanged = newValue => {
           if (newValue === false) {
             return
@@ -73,6 +80,22 @@ export class DimmerController {
           }
           setTimeout(() => this.decOnCharacteristic.value = false, 50);
         };
+
+        this.toggleOnCharacteristic.valueChanged = newValue => {
+          if (newValue === false) {
+            return
+          }
+          platform.logger.info(`[${toggleSwitchName}] switch activated`);
+          platform.logger.info(`current index is ${this.currentIdx}`);
+          if (this.currentIdx > 0) {
+            this.currentIdx = 0;
+          } else {
+            this.currentIdx = this.values.length - 1
+          }
+          setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
+          setTimeout(() => this.toggleOnCharacteristic.value = false, 50);
+        };
+
         this.reportBrightnessCharacteristic.valueChanged = newValue => {
           platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
           const closest = this.values.reduce(function(prev, curr) {
@@ -82,6 +105,7 @@ export class DimmerController {
           platform.logger.info(`new index is ${closestIdx}`);
           this.currentIdx = closestIdx;
         };
+
         this.reportOnCharacteristic.valueChanged = newValue => {
           if (!newValue) {
             platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
@@ -97,6 +121,7 @@ export class DimmerController {
         accessory.removeUnusedServices();
         setTimeout(() => this.incOnCharacteristic.value = false, 50);
         setTimeout(() => this.decOnCharacteristic.value = false, 50);
+        setTimeout(() => this.toggleOnCharacteristic.value = false, 50);
         setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
     }
 
@@ -105,6 +130,7 @@ export class DimmerController {
 
     private incOnCharacteristic: Characteristic<boolean>;
     private decOnCharacteristic: Characteristic<boolean>;
+    private toggleOnCharacteristic: Characteristic<boolean>;
     private bulbOnCharacteristic: Characteristic<boolean>;
     private bulbBrightnessCharacteristic: Characteristic<number>;
     private reportOnCharacteristic: Characteristic<boolean>;
