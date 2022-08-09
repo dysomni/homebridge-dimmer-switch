@@ -9,8 +9,7 @@ export interface DimmerConfiguration {
      */
     name: string;
 
-    /**
-     * Gets or sets a value that determines whether outlets should be exposed instead of switches.
-     */
     values: Array<number>;
+
+    sceneValues: Array<number>;
 }

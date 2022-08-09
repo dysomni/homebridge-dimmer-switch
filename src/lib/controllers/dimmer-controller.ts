@@ -28,7 +28,9 @@ export class DimmerController {
         });
 
         this.values = dimmerConfiguration.values;
+        this.sceneValues = dimmerConfiguration.sceneValues || dimmerConfiguration.values
         this.currentIdx = 0
+        this.sceneIdx = this.sceneValues.length - 1
 
         let lightBulbService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name}`)
         this.bulbOnCharacteristic = lightBulbService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
@@ -38,10 +40,16 @@ export class DimmerController {
         this.reportOnCharacteristic = reportService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
         this.reportBrightnessCharacteristic = reportService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
 
+        let sceneService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name} Scene`, `${dimmerConfiguration.name}-scene-lightbulb`)
+        this.sceneOnCharacteristic = sceneService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
+        this.sceneBrightnessCharacteristic = sceneService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
 
         let incSwitchName = `${dimmerConfiguration.name} Increment`
         let decSwitchName = `${dimmerConfiguration.name} Decrement`
         let toggleSwitchName = `${dimmerConfiguration.name} Toggle`
+        let activateSceneSwitchName = `${dimmerConfiguration.name} Activate Scene`
+        let deactivateSceneSwitchName = `${dimmerConfiguration.name} Deactivate Scene`
+        let disableSceneSwitchName = `${dimmerConfiguration.name} Disable Scene`
 
         // Creates all switches of the controller
         platform.logger.info(`[${dimmerConfiguration.name}] Adding increment switch ${incSwitchName}`);
@@ -55,6 +63,24 @@ export class DimmerController {
         platform.logger.info(`[${dimmerConfiguration.name}] Adding toggle switch ${toggleSwitchName}`);
         let toggleSwitchService = accessory.useService(Homebridge.Services.Switch, toggleSwitchName, `${toggleSwitchName}-switch`);
         this.toggleOnCharacteristic = toggleSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
+
+
+
+        platform.logger.info(`[${dimmerConfiguration.name}] Adding scene activator switch ${activateSceneSwitchName}`);
+        let activateSceneSwitchService = accessory.useService(Homebridge.Services.Switch, activateSceneSwitchName, `${activateSceneSwitchName}-switch`);
+        this.activateSceneOnCharacteristic = activateSceneSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
+
+        platform.logger.info(`[${dimmerConfiguration.name}] Adding scene deactivator switch ${deactivateSceneSwitchName}`);
+        let deactivateSceneSwitchService = accessory.useService(Homebridge.Services.Switch, deactivateSceneSwitchName, `${deactivateSceneSwitchName}-switch`);
+        this.deactivateSceneOnCharacteristic = deactivateSceneSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
+
+        platform.logger.info(`[${dimmerConfiguration.name}] Adding scene disabler switch ${disableSceneSwitchName}`);
+        let disableSceneSwitchService = accessory.useService(Homebridge.Services.Switch, disableSceneSwitchName, `${disableSceneSwitchName}-switch`);
+        this.disableSceneOnCharacteristic = disableSceneSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
+
+
+
+
 
         this.incOnCharacteristic.valueChanged = newValue => {
             if (newValue === false) {
@@ -97,6 +123,41 @@ export class DimmerController {
           setTimeout(() => this.toggleOnCharacteristic.value = false, 50);
         };
 
+
+        this.activateSceneOnCharacteristic.valueChanged = newValue => {
+          if (newValue === false) {
+            return
+          }
+          platform.logger.info(`[${activateSceneSwitchName}] switch activated`);
+          platform.logger.info(`current index is ${this.currentIdx}`);
+          if (this.currentIdx === 0 && !this.disableSceneOnCharacteristic.value) {
+            setTimeout(() => this.bulbBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
+            //TODO might have to add function to update currentIdx
+            setTimeout(() => this.reportBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
+          }
+          setTimeout(() => this.activateSceneOnCharacteristic.value = false, 50);
+        };
+
+        this.deactivateSceneOnCharacteristic.valueChanged = newValue => {
+          if (newValue === false) {
+            return
+          }
+          platform.logger.info(`[${deactivateSceneSwitchName}] switch activated`);
+          platform.logger.info(`current index is ${this.currentIdx}`);
+          if (this.currentIdx > 0 && !this.disableSceneOnCharacteristic.value) {
+            this.currentIdx = 0;
+            setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
+          }
+          setTimeout(() => this.deactivateSceneOnCharacteristic.value = false, 50);
+        };
+
+        // @ts-ignore
+        this.disableSceneOnCharacteristic.valueChanged = newValue => {
+          platform.logger.info(`[${disableSceneSwitchName}] switch toggled`);
+        };
+
+
+
         this.reportBrightnessCharacteristic.valueChanged = newValue => {
           platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
           const closest = this.values.reduce(function(prev, curr) {
@@ -119,23 +180,64 @@ export class DimmerController {
           }
         };
 
+
+        this.sceneBrightnessCharacteristic.valueChanged = newValue => {
+          platform.logger.info(`new [${dimmerConfiguration.name} scene] brightness reported`);
+          const closest = this.sceneValues.reduce(function(prev, curr) {
+            return (Math.abs(curr - newValue) < Math.abs(prev - newValue) ? curr : prev);
+          });
+          const closestIdx = this.sceneValues.findIndex(x => x === closest);
+          platform.logger.info(`new index is ${closestIdx}`);
+          this.sceneIdx = closestIdx;
+        };
+
+        this.sceneOnCharacteristic.valueChanged = newValue => {
+          if (!newValue) {
+            platform.logger.info(`new [${dimmerConfiguration.name} scene] brightness reported`);
+            const closest = this.sceneValues.reduce(function(prev, curr) {
+              return (Math.abs(curr - 0) < Math.abs(prev - 0) ? curr : prev);
+            });
+            const closestIdx = this.sceneValues.findIndex(x => x === closest);
+            platform.logger.info(`new index is ${closestIdx}`);
+            this.sceneIdx = closestIdx;
+          }
+        };
+
+
+
         accessory.removeUnusedServices();
         setTimeout(() => this.incOnCharacteristic.value = false, 50);
         setTimeout(() => this.decOnCharacteristic.value = false, 50);
+        setTimeout(() => this.activateSceneOnCharacteristic.value = false, 50);
+        setTimeout(() => this.deactivateSceneOnCharacteristic.value = false, 50);
+        setTimeout(() => this.disableSceneOnCharacteristic.value = false, 50);
         setTimeout(() => this.toggleOnCharacteristic.value = false, 50);
         setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
+        setTimeout(() => this.sceneBrightnessCharacteristic.value = this.values[this.values.length - 1], 50);
     }
 
     private values: Array<number>;
+    private sceneValues: Array<number>;
     private currentIdx: number;
+    private sceneIdx: number;
 
     private incOnCharacteristic: Characteristic<boolean>;
     private decOnCharacteristic: Characteristic<boolean>;
     private toggleOnCharacteristic: Characteristic<boolean>;
+
+
+    private activateSceneOnCharacteristic: Characteristic<boolean>;
+    private deactivateSceneOnCharacteristic: Characteristic<boolean>;
+    private disableSceneOnCharacteristic: Characteristic<boolean>;
+
     // @ts-ignore
     private bulbOnCharacteristic: Characteristic<boolean>;
     private bulbBrightnessCharacteristic: Characteristic<number>;
     private reportOnCharacteristic: Characteristic<boolean>;
     private reportBrightnessCharacteristic: Characteristic<number>;
+    // @ts-ignore
+    private sceneOnCharacteristic: Characteristic<boolean>;
+    // @ts-ignore
+    private sceneBrightnessCharacteristic: Characteristic<number>;
 
 }

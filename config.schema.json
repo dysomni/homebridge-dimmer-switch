@@ -23,13 +23,24 @@
                         "values": {
                             "title": "List of values to shift through",
                             "type": "array",
+                            "required": true,
                             "description": "These are the values that the buttons will shift through.",
                             "items": {
                               "title": "Value",
                               "type": "number",
                               "description": "A value between 0 and 100 to represent the next dimmer value."
                             }
-                        }
+                        },
+                        "sceneValues": {
+                          "title": "List of values to set as scenes",
+                          "type": "array",
+                          "description": "These are the values that the scene activators will use.",
+                          "items": {
+                            "title": "Value",
+                            "type": "number",
+                            "description": "A value between 0 and 100 to represent the scene values."
+                          }
+                      }
                     }
                 }
             }
