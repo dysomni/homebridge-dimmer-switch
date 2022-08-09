@@ -1,7 +1,7 @@
 # homebridge-dimmer-switch
 Homebridge plugin that exposes a dimmer switch with increment and decrement switches.
 
-Each dimmer switch creates 5 different accessories in a group.
+Each dimmer switch creates TODO UPDATE 5 different accessories in a group.
 
 The plain dimmer bulb is used for hooking functionality to. Use apps like Home+ to automate a scene when the dimmer is set to a specific value.
 
@@ -59,3 +59,5 @@ npm install -g .
 **name**: The name of the dimmer, that is initially used as the display name.
 
 **values**: List of values that the dimmer will move through. Increment moves to values later in the list, and Decrement moves to values earlier in the list.
+
+**dimmerValues**: List of values TODO
