@@ -1,6 +1,6 @@
 
 import { Platform } from '../platform';
-import { Homebridge, Characteristic, Service } from 'homebridge-framework';
+import { Homebridge, Characteristic } from 'homebridge-framework';
 import { DimmerConfiguration } from '../configuration/dimmer-configuration';
 
 /**
@@ -13,6 +13,7 @@ export class DimmerController {
      * @param platform The plugin platform.
      * @param groupConfiguration The configuration of the group that is represented by this controller.
      */
+    // @ts-ignore
     constructor(private platform: Platform, private dimmerConfiguration: DimmerConfiguration) {
         platform.logger.info(`[${dimmerConfiguration.name}] Initializing...`);
 
@@ -131,6 +132,7 @@ export class DimmerController {
     private incOnCharacteristic: Characteristic<boolean>;
     private decOnCharacteristic: Characteristic<boolean>;
     private toggleOnCharacteristic: Characteristic<boolean>;
+    // @ts-ignore
     private bulbOnCharacteristic: Characteristic<boolean>;
     private bulbBrightnessCharacteristic: Characteristic<number>;
     private reportOnCharacteristic: Characteristic<boolean>;
