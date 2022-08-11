@@ -29,7 +29,8 @@
   "scripts": {
     "debug": "rimraf dist/ && tsc && homebridge -D -U . -P .",
     "build": "rimraf dist/ && tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "install": "npm run build && npm i -g . && sudo npm i -g ."
   },
   "engines": {
     "node": ">=10",
