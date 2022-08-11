@@ -88,13 +88,15 @@ export class DimmerController {
 
         const setBulbBrightness = (brightness: number, callback?: () => any) => {
           setTimeout(() => {
+            var timer = 50
             if (brightness === this.bulbBrightnessCharacteristic.value) { // if its already set, we need to reset it
               this.bulbBrightnessCharacteristic.value = this.unusedNumber
+              timer = 1000
             }
 
             setTimeout(() => {
               this.bulbBrightnessCharacteristic.value = brightness
-            }, 50)
+            }, timer)
 
             if (callback) callback()
           }, 50);
