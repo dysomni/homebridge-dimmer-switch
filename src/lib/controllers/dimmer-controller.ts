@@ -3,6 +3,12 @@ import { Platform } from '../platform';
 import { Homebridge, Characteristic } from 'homebridge-framework';
 import { DimmerConfiguration } from '../configuration/dimmer-configuration';
 
+const unused_value = (values1: Array<number>, values2: Array<number>) => {
+  const hundred = Array.apply(null, Array(101)).map(function (_, i) {return i;})
+  const unused = hundred.filter(n => !values1.includes(n) && !values2.includes(n))
+  return unused[0]
+}
+
 /**
  * Represents a controller for a single group. A group consists of multiple switches and acts as a radio button group.
  */
@@ -29,6 +35,7 @@ export class DimmerController {
 
         this.values = dimmerConfiguration.values;
         this.sceneValues = dimmerConfiguration.sceneValues || dimmerConfiguration.values
+        this.unusedNumber = unused_value(this.values, this.sceneValues)
         this.currentIdx = 0
         this.sceneIdx = this.sceneValues.length - 1
 
@@ -79,6 +86,19 @@ export class DimmerController {
         this.disableSceneOnCharacteristic = disableSceneSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
 
 
+        const setBulbBrightness = (brightness: number, callback?: () => any) => {
+          setTimeout(() => {
+            if (brightness === this.bulbBrightnessCharacteristic.value) { // if its already set, we need to reset it
+              this.bulbBrightnessCharacteristic.value = this.unusedNumber
+            }
+
+            setTimeout(() => {
+              this.bulbBrightnessCharacteristic.value = brightness
+            }, 50)
+
+            if (callback) callback()
+          }, 50);
+        }
 
 
 
@@ -90,7 +110,7 @@ export class DimmerController {
             platform.logger.info(`current index is ${this.currentIdx}`);
             if (this.currentIdx < this.values.length - 1) {
               this.currentIdx = this.currentIdx + 1;
-              setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
+              setBulbBrightness(this.values[this.currentIdx])
             }
             setTimeout(() => this.incOnCharacteristic.value = false, 50);
         };
@@ -103,7 +123,7 @@ export class DimmerController {
           platform.logger.info(`current index is ${this.currentIdx}`);
           if (this.currentIdx > 0) {
             this.currentIdx = this.currentIdx - 1;
-            setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
+            setBulbBrightness(this.values[this.currentIdx])
           }
           setTimeout(() => this.decOnCharacteristic.value = false, 50);
         };
@@ -119,7 +139,7 @@ export class DimmerController {
           } else {
             this.currentIdx = this.values.length - 1
           }
-          setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
+          setBulbBrightness(this.values[this.currentIdx])
           setTimeout(() => this.toggleOnCharacteristic.value = false, 50);
         };
 
@@ -131,7 +151,7 @@ export class DimmerController {
           platform.logger.info(`[${activateSceneSwitchName}] switch activated`);
           platform.logger.info(`current index is ${this.currentIdx}`);
           if (this.currentIdx === 0 && !this.disableSceneOnCharacteristic.value) {
-            setTimeout(() => this.bulbBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
+            setBulbBrightness(this.sceneValues[this.sceneIdx])
             //TODO might have to add function to update currentIdx
             setTimeout(() => this.reportBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
           }
@@ -146,7 +166,7 @@ export class DimmerController {
           platform.logger.info(`current index is ${this.currentIdx}`);
           if (this.currentIdx > 0 && !this.disableSceneOnCharacteristic.value) {
             this.currentIdx = 0;
-            setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
+            setBulbBrightness(this.values[this.currentIdx])
           }
           setTimeout(() => this.deactivateSceneOnCharacteristic.value = false, 50);
         };
@@ -220,6 +240,7 @@ export class DimmerController {
     private sceneValues: Array<number>;
     private currentIdx: number;
     private sceneIdx: number;
+    private unusedNumber: number;
 
     private incOnCharacteristic: Characteristic<boolean>;
     private decOnCharacteristic: Characteristic<boolean>;
