@@ -33,8 +33,7 @@ export class DimmerController {
       hardwareRevision: null
     });
 
-    // this.values = dimmerConfiguration.values;
-    this.sceneValues = dimmerConfiguration.sceneValues // || dimmerConfiguration.values
+    this.sceneValues = dimmerConfiguration.sceneValues
     this.unusedNumber = unused_value(this.sceneValues)
     this.sceneIdx = this.sceneValues.length - 1
 
@@ -42,24 +41,12 @@ export class DimmerController {
     this.bulbOnCharacteristic = lightBulbService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
     this.bulbBrightnessCharacteristic = lightBulbService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
 
-    // let reportService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name} Report`, `${dimmerConfiguration.name}-report-lightbulb`)
-    // this.reportOnCharacteristic = reportService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
-    // this.reportBrightnessCharacteristic = reportService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
 
     let sceneService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name} Scene`, `${dimmerConfiguration.name}-scene-lightbulb`)
     this.sceneOnCharacteristic = sceneService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
     this.sceneBrightnessCharacteristic = sceneService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
 
     // Creates all switches of the controller
-    // let incSwitchName = `${dimmerConfiguration.name} Increment`
-    // platform.logger.info(`[${dimmerConfiguration.name}] Adding increment switch ${incSwitchName}`);
-    // let incSwitchService = accessory.useService(Homebridge.Services.Switch, incSwitchName, `${incSwitchName}-switch`);
-    // this.incOnCharacteristic = incSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
-
-    // let decSwitchName = `${dimmerConfiguration.name} Decrement`
-    // platform.logger.info(`[${dimmerConfiguration.name}] Adding decrement switch ${decSwitchName}`);
-    // let decSwitchService = accessory.useService(Homebridge.Services.Switch, decSwitchName, `${decSwitchName}-switch`);
-    // this.decOnCharacteristic = decSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
 
     let toggleSwitchName = `${dimmerConfiguration.name} Toggle`
     platform.logger.info(`[${dimmerConfiguration.name}] Adding toggle switch ${toggleSwitchName}`);
@@ -75,11 +62,6 @@ export class DimmerController {
     platform.logger.info(`[${dimmerConfiguration.name}] Adding scene deactivator switch ${deactivateSceneSwitchName}`);
     let deactivateSceneSwitchService = accessory.useService(Homebridge.Services.Switch, deactivateSceneSwitchName, `${deactivateSceneSwitchName}-switch`);
     this.deactivateSceneOnCharacteristic = deactivateSceneSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
-
-    // let disableSceneSwitchName = `${dimmerConfiguration.name} Disable Scene`
-    // platform.logger.info(`[${dimmerConfiguration.name}] Adding scene disabler switch ${disableSceneSwitchName}`);
-    // let disableSceneSwitchService = accessory.useService(Homebridge.Services.Switch, disableSceneSwitchName, `${disableSceneSwitchName}-switch`);
-    // this.disableSceneOnCharacteristic = disableSceneSwitchService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
 
 
     const isDisabled = () => {
@@ -107,34 +89,6 @@ export class DimmerController {
         if (callback) callback()
       }, 50);
     }
-
-
-
-    // this.incOnCharacteristic.valueChanged = newValue => {
-    //   if (newValue === false) {
-    //     return
-    //   }
-    //   platform.logger.info(`[${incSwitchName}] switch activated`);
-    //   platform.logger.info(`current index is ${this.currentIdx}`);
-    //   if (this.currentIdx < this.values.length - 1) {
-    //     this.currentIdx = this.currentIdx + 1;
-    //     setBulbBrightness(this.values[this.currentIdx])
-    //   }
-    //   setTimeout(() => this.incOnCharacteristic.value = false, 50);
-    // };
-
-    // this.decOnCharacteristic.valueChanged = newValue => {
-    //   if (newValue === false) {
-    //     return
-    //   }
-    //   platform.logger.info(`[${decSwitchName}] switch activated`);
-    //   platform.logger.info(`current index is ${this.currentIdx}`);
-    //   if (this.currentIdx > 0) {
-    //     this.currentIdx = this.currentIdx - 1;
-    //     setBulbBrightness(this.values[this.currentIdx])
-    //   }
-    //   setTimeout(() => this.decOnCharacteristic.value = false, 50);
-    // };
 
     this.toggleOnCharacteristic.valueChanged = newValue => {
       if (newValue === false || isDisabled()) {
@@ -176,34 +130,6 @@ export class DimmerController {
       setTimeout(() => this.deactivateSceneOnCharacteristic.value = false, 50);
     };
 
-    // // @ts-ignore
-    // this.disableSceneOnCharacteristic.valueChanged = newValue => {
-    //   platform.logger.info(`[${disableSceneSwitchName}] switch toggled`);
-    // };
-
-    // this.reportBrightnessCharacteristic.valueChanged = newValue => {
-    //   platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
-    //   const closest = this.sceneValues.reduce(function (prev, curr) {
-    //     return (Math.abs(curr - newValue) < Math.abs(prev - newValue) ? curr : prev);
-    //   });
-    //   const closestIdx = this.sceneValues.findIndex(x => x === closest);
-    //   platform.logger.info(`new index is ${closestIdx}`);
-    //   this.sceneIdx = closestIdx;
-    // };
-
-    // this.reportOnCharacteristic.valueChanged = newValue => {
-    //   if (!newValue) {
-    //     platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
-    //     const closest = this.values.reduce(function (prev, curr) {
-    //       return (Math.abs(curr - 0) < Math.abs(prev - 0) ? curr : prev);
-    //     });
-    //     const closestIdx = this.values.findIndex(x => x === closest);
-    //     platform.logger.info(`new index is ${closestIdx}`);
-    //     this.currentIdx = closestIdx;
-    //   }
-    // };
-
-
     this.sceneBrightnessCharacteristic.valueChanged = newValue => {
       platform.logger.info(`new [${dimmerConfiguration.name} scene] brightness reported`);
       const closest = this.sceneValues.reduce(function (prev, curr) {
@@ -229,11 +155,8 @@ export class DimmerController {
 
 
     accessory.removeUnusedServices();
-    // setTimeout(() => this.incOnCharacteristic.value = false, 50);
-    // setTimeout(() => this.decOnCharacteristic.value = false, 50);
     setTimeout(() => this.activateSceneOnCharacteristic.value = false, 50);
     setTimeout(() => this.deactivateSceneOnCharacteristic.value = false, 50);
-    // setTimeout(() => this.disableSceneOnCharacteristic.value = false, 50);
     setTimeout(() => this.toggleOnCharacteristic.value = false, 50);
     setTimeout(() => this.bulbBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
     setTimeout(() => this.sceneBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
@@ -243,20 +166,15 @@ export class DimmerController {
   private sceneIdx: number;
   private unusedNumber: number;
 
-  // private incOnCharacteristic: Characteristic<boolean>;
-  // private decOnCharacteristic: Characteristic<boolean>;
   private toggleOnCharacteristic: Characteristic<boolean>;
 
 
   private activateSceneOnCharacteristic: Characteristic<boolean>;
   private deactivateSceneOnCharacteristic: Characteristic<boolean>;
-  // private disableSceneOnCharacteristic: Characteristic<boolean>;
 
   // @ts-ignore
   private bulbOnCharacteristic: Characteristic<boolean>;
   private bulbBrightnessCharacteristic: Characteristic<number>;
-  // private reportOnCharacteristic: Characteristic<boolean>;
-  // private reportBrightnessCharacteristic: Characteristic<number>;
   // @ts-ignore
   private sceneOnCharacteristic: Characteristic<boolean>;
   // @ts-ignore
