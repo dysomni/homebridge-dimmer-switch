@@ -1,49 +1,38 @@
 {
-    "pluginAlias": "DimmerSwitchPlatform",
-    "pluginType": "platform",
-    "singular": true,
-    "headerDisplay": "Homebridge plugin that exposes a fake dimmer with incremental buttons.",
-    "footerDisplay": "Each dimmer can have many values. The values will be sorted through from first to last when increasing, and last to first when decreasing.",
-    "schema": {
-        "type": "object",
-        "properties": {
-            "dimmers": {
-                "type": "array",
-                "items": {
-                    "title": "Dimmer",
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "title": "Name",
-                            "type": "string",
-                            "required": true,
-                            "placeholder": "unique dimmer name",
-                            "description": "The name of the dimmer, that is initially used as the display name."
-                        },
-                        "values": {
-                            "title": "List of values to shift through",
-                            "type": "array",
-                            "required": true,
-                            "description": "These are the values that the buttons will shift through.",
-                            "items": {
-                              "title": "Value",
-                              "type": "number",
-                              "description": "A value between 0 and 100 to represent the next dimmer value."
-                            }
-                        },
-                        "sceneValues": {
-                          "title": "List of values to set as scenes",
-                          "type": "array",
-                          "description": "These are the values that the scene activators will use.",
-                          "items": {
-                            "title": "Value",
-                            "type": "number",
-                            "description": "A value between 0 and 100 to represent the scene values."
-                          }
-                      }
-                    }
-                }
+  "pluginAlias": "DimmerSwitchPlatform",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "Homebridge plugin that exposes a fake dimmer with incremental buttons.",
+  "footerDisplay": "Each dimmer can have many values. The values will be sorted through from first to last when increasing, and last to first when decreasing.",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "dimmers": {
+        "type": "array",
+        "items": {
+          "title": "Dimmer",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "required": true,
+              "placeholder": "unique dimmer name",
+              "description": "The name of the dimmer, that is initially used as the display name."
+            },
+            "sceneValues": {
+              "title": "List of values to set as scenes",
+              "type": "array",
+              "description": "These are the values that the scene activators will use.",
+              "items": {
+                "title": "Value",
+                "type": "number",
+                "description": "A value between 0 and 100 to represent the scene values."
+              }
             }
+          }
         }
+      }
     }
+  }
 }

@@ -3,9 +3,9 @@ import { Platform } from '../platform';
 import { Homebridge, Characteristic } from 'homebridge-framework';
 import { DimmerConfiguration } from '../configuration/dimmer-configuration';
 
-const unused_value = (values1: Array<number>, values2: Array<number>) => {
+const unused_value = (values: Array<number>) => {
   const hundred = Array.apply(null, Array(101)).map(function (_, i) { return i; })
-  const unused = hundred.filter(n => !values1.includes(n) && !values2.includes(n))
+  const unused = hundred.filter(n => !values.includes(n))
   return unused[0]
 }
 
@@ -33,19 +33,18 @@ export class DimmerController {
       hardwareRevision: null
     });
 
-    this.values = dimmerConfiguration.values;
-    this.sceneValues = dimmerConfiguration.sceneValues || dimmerConfiguration.values
-    this.unusedNumber = unused_value(this.values, this.sceneValues)
-    this.currentIdx = 0
+    // this.values = dimmerConfiguration.values;
+    this.sceneValues = dimmerConfiguration.sceneValues // || dimmerConfiguration.values
+    this.unusedNumber = unused_value(this.sceneValues)
     this.sceneIdx = this.sceneValues.length - 1
 
     let lightBulbService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name}`)
     this.bulbOnCharacteristic = lightBulbService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
     this.bulbBrightnessCharacteristic = lightBulbService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
 
-    let reportService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name} Report`, `${dimmerConfiguration.name}-report-lightbulb`)
-    this.reportOnCharacteristic = reportService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
-    this.reportBrightnessCharacteristic = reportService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
+    // let reportService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name} Report`, `${dimmerConfiguration.name}-report-lightbulb`)
+    // this.reportOnCharacteristic = reportService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
+    // this.reportBrightnessCharacteristic = reportService.useCharacteristic<number>(Homebridge.Characteristics.Brightness)
 
     let sceneService = accessory.useService(Homebridge.Services.Lightbulb, `${dimmerConfiguration.name} Scene`, `${dimmerConfiguration.name}-scene-lightbulb`)
     this.sceneOnCharacteristic = sceneService.useCharacteristic<boolean>(Homebridge.Characteristics.On);
@@ -86,6 +85,11 @@ export class DimmerController {
     const isDisabled = () => {
       const sceneValue = this.sceneValues[this.sceneIdx]
       return sceneValue === 0;
+    }
+
+    const currentBrightness = () => {
+      const bulbBrightness = this.bulbBrightnessCharacteristic.value
+      return bulbBrightness || 0
     }
 
     const setBulbBrightness = (brightness: number, callback?: () => any) => {
@@ -137,13 +141,13 @@ export class DimmerController {
         return
       }
       platform.logger.info(`[${toggleSwitchName}] switch activated`);
-      platform.logger.info(`current index is ${this.currentIdx}`);
-      if (this.currentIdx > 0) {
-        this.currentIdx = 0;
+      platform.logger.info(`current index is ${this.sceneIdx}`);
+      if (currentBrightness() > 0) {
+        setBulbBrightness(0)
       } else {
-        this.currentIdx = this.values.length - 1
+        setBulbBrightness(this.sceneValues[this.sceneIdx])
       }
-      setBulbBrightness(this.values[this.currentIdx])
+
       setTimeout(() => this.toggleOnCharacteristic.value = false, 50);
     };
 
@@ -153,12 +157,10 @@ export class DimmerController {
         return
       }
       platform.logger.info(`[${activateSceneSwitchName}] switch activated`);
-      platform.logger.info(`current index is ${this.currentIdx}`);
-      if (this.currentIdx === 0) {
-        setBulbBrightness(this.sceneValues[this.sceneIdx])
-        //TODO might have to add function to update currentIdx
-        setTimeout(() => this.reportBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
-      }
+      platform.logger.info(`current index is ${this.sceneIdx}`);
+
+      setBulbBrightness(this.sceneValues[this.sceneIdx])
+
       setTimeout(() => this.activateSceneOnCharacteristic.value = false, 50);
     };
 
@@ -168,10 +170,9 @@ export class DimmerController {
       }
       platform.logger.info(`[${deactivateSceneSwitchName}] switch activated`);
       platform.logger.info(`current index is ${this.currentIdx}`);
-      if (this.currentIdx > 0) {
-        this.currentIdx = 0;
-        setBulbBrightness(this.values[this.currentIdx])
-      }
+
+      setBulbBrightness(0)
+
       setTimeout(() => this.deactivateSceneOnCharacteristic.value = false, 50);
     };
 
@@ -180,29 +181,27 @@ export class DimmerController {
     //   platform.logger.info(`[${disableSceneSwitchName}] switch toggled`);
     // };
 
+    // this.reportBrightnessCharacteristic.valueChanged = newValue => {
+    //   platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
+    //   const closest = this.sceneValues.reduce(function (prev, curr) {
+    //     return (Math.abs(curr - newValue) < Math.abs(prev - newValue) ? curr : prev);
+    //   });
+    //   const closestIdx = this.sceneValues.findIndex(x => x === closest);
+    //   platform.logger.info(`new index is ${closestIdx}`);
+    //   this.sceneIdx = closestIdx;
+    // };
 
-
-    this.reportBrightnessCharacteristic.valueChanged = newValue => {
-      platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
-      const closest = this.values.reduce(function (prev, curr) {
-        return (Math.abs(curr - newValue) < Math.abs(prev - newValue) ? curr : prev);
-      });
-      const closestIdx = this.values.findIndex(x => x === closest);
-      platform.logger.info(`new index is ${closestIdx}`);
-      this.currentIdx = closestIdx;
-    };
-
-    this.reportOnCharacteristic.valueChanged = newValue => {
-      if (!newValue) {
-        platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
-        const closest = this.values.reduce(function (prev, curr) {
-          return (Math.abs(curr - 0) < Math.abs(prev - 0) ? curr : prev);
-        });
-        const closestIdx = this.values.findIndex(x => x === closest);
-        platform.logger.info(`new index is ${closestIdx}`);
-        this.currentIdx = closestIdx;
-      }
-    };
+    // this.reportOnCharacteristic.valueChanged = newValue => {
+    //   if (!newValue) {
+    //     platform.logger.info(`new [${dimmerConfiguration.name}] brightness reported`);
+    //     const closest = this.values.reduce(function (prev, curr) {
+    //       return (Math.abs(curr - 0) < Math.abs(prev - 0) ? curr : prev);
+    //     });
+    //     const closestIdx = this.values.findIndex(x => x === closest);
+    //     platform.logger.info(`new index is ${closestIdx}`);
+    //     this.currentIdx = closestIdx;
+    //   }
+    // };
 
 
     this.sceneBrightnessCharacteristic.valueChanged = newValue => {
@@ -236,13 +235,11 @@ export class DimmerController {
     setTimeout(() => this.deactivateSceneOnCharacteristic.value = false, 50);
     // setTimeout(() => this.disableSceneOnCharacteristic.value = false, 50);
     setTimeout(() => this.toggleOnCharacteristic.value = false, 50);
-    setTimeout(() => this.bulbBrightnessCharacteristic.value = this.values[this.currentIdx], 50);
-    setTimeout(() => this.sceneBrightnessCharacteristic.value = this.values[this.values.length - 1], 50);
+    setTimeout(() => this.bulbBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
+    setTimeout(() => this.sceneBrightnessCharacteristic.value = this.sceneValues[this.sceneIdx], 50);
   }
 
-  private values: Array<number>;
   private sceneValues: Array<number>;
-  private currentIdx: number;
   private sceneIdx: number;
   private unusedNumber: number;
 
@@ -258,8 +255,8 @@ export class DimmerController {
   // @ts-ignore
   private bulbOnCharacteristic: Characteristic<boolean>;
   private bulbBrightnessCharacteristic: Characteristic<number>;
-  private reportOnCharacteristic: Characteristic<boolean>;
-  private reportBrightnessCharacteristic: Characteristic<number>;
+  // private reportOnCharacteristic: Characteristic<boolean>;
+  // private reportBrightnessCharacteristic: Characteristic<number>;
   // @ts-ignore
   private sceneOnCharacteristic: Characteristic<boolean>;
   // @ts-ignore
