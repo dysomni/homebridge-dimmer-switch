@@ -87,9 +87,9 @@ export class DimmerController {
         setTimeout(() => {
           this.bulbBrightnessCharacteristic.value = brightness
           if (brightness === 0) {
-            this.sceneOnCharacteristic.value = false
+            this.bulbOnCharacteristic.value = false
           } else {
-            this.sceneOnCharacteristic.value = true
+            this.bulbOnCharacteristic.value = true
           }
         }, timer)
 
