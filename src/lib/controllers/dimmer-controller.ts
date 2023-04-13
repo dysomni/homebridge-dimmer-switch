@@ -79,13 +79,18 @@ export class DimmerController {
         platform.logger.info(`setting brightness to ${brightness}`);
         platform.logger.info(`current brightness is ${currentBrightness()}`);
         var timer = 50
-        if (brightness === this.bulbBrightnessCharacteristic.value) { // if its already set, we need to reset it
+        if (brightness === currentBrightness()) { // if its already set, we need to reset it
           this.bulbBrightnessCharacteristic.value = this.unusedNumber
           timer = 1000
         }
 
         setTimeout(() => {
           this.bulbBrightnessCharacteristic.value = brightness
+          if (brightness === 0) {
+            this.sceneOnCharacteristic.value = false
+          } else {
+            this.sceneOnCharacteristic.value = true
+          }
         }, timer)
 
         if (callback) callback()
