@@ -169,7 +169,7 @@ export class DimmerController {
         return
       }
       platform.logger.info(`[${deactivateSceneSwitchName}] switch activated`);
-      platform.logger.info(`current index is ${this.currentIdx}`);
+      platform.logger.info(`current index is ${this.sceneIdx}`);
 
       setBulbBrightness(0)
 
